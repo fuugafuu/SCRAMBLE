@@ -68,6 +68,7 @@ body {
 
 .top-left { top: 12px; left: 12px; }
 .top-right { top: 12px; right: 12px; }
+.top-center { top: 12px; left: 50%; transform: translateX(-50%); }
 .bottom-left { left: 12px; bottom: 12px; }
 
 .crosshair {
