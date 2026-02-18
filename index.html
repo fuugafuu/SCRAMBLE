@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCRAMBLEゴーグル（原作寄せ）</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="visor" aria-label="SCRAMBLE visor view">
+      <video id="camera" autoplay playsinline muted></video>
+      <canvas id="screen"></canvas>
+
+      <div class="hud top-left">SCRAMBLE SYSTEM</div>
+      <div class="hud top-right" id="modeLabel">MODE: SCRAMBLE</div>
+      <div class="hud top-center" id="trackLabel">TRACK: INIT</div>
+      <div class="hud bottom-left" id="status">CAM: INITIALIZING...</div>
+      <div class="crosshair" aria-hidden="true"></div>
+      <div class="scanline" aria-hidden="true"></div>
+    </section>
+
+    <section class="controls">
+      <button id="toggle" type="button">SCRAMBLE OFF</button>
+      <p>※ 原作寄せのため、手動スライダーは廃止。ON/OFFのみ。</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
