@@ -50,7 +50,7 @@ test("renderer issues different geometry at different times, without bitmaps",()
   const commands=[];
   const ctx=new Proxy({},{get:(target,key)=>{
     if(key==="save"||key==="restore"||key==="beginPath"||key==="clip"||key==="stroke")return ()=>{};
-    if(key==="fillRect"||key==="strokeRect"||key==="translate"||key==="scale"||key==="moveTo"||key==="lineTo")return(...args)=>commands.push([key,...args]);
+    if(key==="rect"||key==="fillRect"||key==="strokeRect"||key==="translate"||key==="scale"||key==="moveTo"||key==="lineTo")return(...args)=>commands.push([key,...args]);
     return target[key];
   },set:(target,key,value)=>{target[key]=value;return true}});
   const f={id:7,started:1000,box:{x:5,y:5,w:110,h:130},opacity:1};
