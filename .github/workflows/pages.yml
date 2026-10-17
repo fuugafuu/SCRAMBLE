@@ -18,6 +18,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate JavaScript modules
+        run: node --check src/app.mjs && node --check src/effect.mjs && node --check src/tracker.mjs
       - name: Verify multi-face tracking
         run: node --test tests/tracker.test.mjs
       - uses: actions/configure-pages@v5
