@@ -112,7 +112,7 @@ function tick(now){
       }catch(e){console.error("Face detector:",e);interval=250;}
     }
     // Each tracked person animates independently, even when standing still.
-    for(const face of tracker.frame(now))scramble(c,face,now);
+    for(const face of tracker.frame(now))scramble(c,face,now,video);
     c.restore();
   }
   requestAnimationFrame(tick);

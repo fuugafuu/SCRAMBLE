@@ -1,4 +1,5 @@
-// Multi-person face tracks. No identity recognition or persistence.
+// Multi-person face tracks with stable IDs and motion-responsive effects.
+// Tracking identifies contiguous image regions only; no biometric identity matching.
 export const LOST_TIMEOUT=620;
 const cap=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 const center=b=>({x:b.x+b.w/2,y:b.y+b.h/2});
@@ -18,17 +19,16 @@ export function extractBoxes(result,width,height){
   }return out;
 }
 export class MultiFaceTracker{
-  constructor(){this.tracks=[];this.nextId=1;this.lastFrame=0}
-  reset(){this.tracks=[];this.nextId=1;this.lastFrame=0}
+  constructor(){this.tracks=[];this.nextId=1;this.lastFrame=0;}
+  reset(){this.tracks=[];this.nextId=1;this.lastFrame=0;}
   ingest(boxes,time){
     const candidates=[];
     for(let i=0;i<this.tracks.length;i++){
       const t=this.tracks[i];if(time-t.seen>LOST_TIMEOUT)continue;
       for(let j=0;j<boxes.length;j++){
         const b=boxes[j];if(!b||![b.x,b.y,b.w,b.h].every(Number.isFinite)||b.w<8||b.h<8)continue;
-        const a=center(t.target),c=center(b);
-        const dt=cap((time-t.seen)/1000,0,.25);
-        const distance=Math.hypot(a.x+t.vx*dt-c.x,a.y+t.vy*dt-c.y)/
+        const a=center(t.target),d=center(b),dt=cap((time-t.seen)/1000,0,.25);
+        const distance=Math.hypot(a.x+t.vx*dt-d.x,a.y+t.vy*dt-d.y)/
           Math.max(24,Math.hypot(t.target.w,t.target.h),Math.hypot(b.w,b.h));
         const overlap=iou(t.target,b);
         const ratio=Math.abs(Math.log(b.w/t.target.w))+Math.abs(Math.log(b.h/t.target.h));
@@ -43,6 +43,9 @@ export class MultiFaceTracker{
       const t=this.tracks[m.i],b=boxes[m.j];
       const prev=center(t.target),next=center(b);
       const dt=Math.max(.016,(time-t.seen)/1000);
+      const speed=Math.hypot(next.x-prev.x,next.y-prev.y)/
+        Math.max(25,Math.hypot(t.target.w,t.target.h))/dt;
+      t.motion=Math.max(t.motion||0,cap(speed*.29,0,1));
       t.vx=cap(t.vx*.45+(next.x-prev.x)/dt*.55,-2400,2400);
       t.vy=cap(t.vy*.45+(next.y-prev.y)/dt*.55,-2400,2400);
       t.target={...b};t.seen=time;
@@ -52,7 +55,10 @@ export class MultiFaceTracker{
       if(matchedBoxes.has(j))continue;
       const b=boxes[j];
       if(!b||![b.x,b.y,b.w,b.h].every(Number.isFinite)||b.w<8||b.h<8)continue;
-      this.tracks.push({id:this.nextId++,box:{...b},target:{...b},vx:0,vy:0,seen:time,opacity:0});
+      this.tracks.push({
+        id:this.nextId++,box:{...b},target:{...b},vx:0,vy:0,
+        started:time,seen:time,motion:0,opacity:0
+      });
     }
   }
   frame(time){
@@ -60,6 +66,7 @@ export class MultiFaceTracker{
     const k=1-Math.exp(-dt/62);
     for(const t of this.tracks){
       for(const prop of ["x","y","w","h"])t.box[prop]+=(t.target[prop]-t.box[prop])*k;
+      t.motion=cap((t.motion||0)*Math.exp(-dt/330),0,1);
       const lost=time-t.seen;
       const goal=lost>225?cap(1-(lost-225)/395,0,1):1;
       t.opacity+=(goal-t.opacity)*(1-Math.exp(-dt/(goal===1?90:55)));
