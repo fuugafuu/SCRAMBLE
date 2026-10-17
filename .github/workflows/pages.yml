@@ -19,9 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate JavaScript modules
-        run: node --check src/app.mjs && node --check src/effect.mjs && node --check src/tracker.mjs
+        run: node --check src/app.mjs && node --check src/effect.mjs && node --check src/tracker.mjs && node --check src/camera.mjs && node --check tests/camera-effect.test.mjs
       - name: Verify multi-face tracking
-        run: node --test tests/tracker.test.mjs
+        run: node --test tests/*.test.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
