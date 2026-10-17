@@ -1,28 +1,31 @@
-# SCRAMBLE — Multi-face Camera Effect
+# SCRAMBLE / animated multi-face obscuration
 
-スマホ/PCのカメラから、複数人の顔へ画像参照に近い白黒の幾何学的エフェクトをリアルタイム表示するWebサイト。
+背面カメラから複数人の顔をリアルタイム検出し、それぞれをアニメーションするSCRAMBLE風の幾何学的エフェクトで覆うWebサイト。
 
-## 実装内容
-- Google MediaPipe Tasks Vision / BlazeFace short-range (実際の学習済み顔検出モデル)
-- 複数顔の同時検出、位置・速度と重なり率による追跡、平滑化、検出ロスト時のフェード
-- カメラと認識フレームは両方同じ座標で自撮り反転
-- フルスクリーン。初回の「カメラを起動」以外の余計なUIはなし
-- カメラ映像・顔データはサーバーへアップロードせず、ブラウザ上で処理
-- 名前などの個人識別・顔照合は実装していません（顔の位置検出のみ）
+## 変更点
 
-## 公開
-Settings → Pages → Build and deployment → Source → GitHub Actions を最初に一度設定。
-GitHub Actions ワークフローにより main 更新でサイトを公開。
+- スマホでは背面カメラを最優先で要求します (facingMode: exact environment)。背面カメラがない端末のみ利用可能なカメラにフォールバックします。ミラー反転なし。
+- 前作で固定だった白黒エフェクトを **毎フレーム手続き的に描画** します。画像ファイルを貼り付けません。
+- 顔を見つけた瞬間のブロック展開、常時移動する走査線と斜線、変化するグリッチ片、脈動するマーカー、顔を追う枠を組み合わせます。
+- MediaPipe FaceDetector (BlazeFace short-range) が検出した複数人の顔すべてに、独立したアニメーションとトラッキングを適用。
+- UIは起動ボタンおよびエラー状態のみ。余計なHUDや文字は表示しません。
 
-Pages有効化後のアドレス: https://fuugafuu.github.io/SCRAMBLE/
+## 使い方
 
-## ローカルで動かす
-1. Pythonで `python -m http.server 8000`
-2. http://localhost:8000/ を開く
-3. 「カメラを起動」→ブラウザから許可
+GitHub Pages を有効化済みであれば https://fuugafuu.github.io/SCRAMBLE/ で起動できます。
 
-カメラ利用には HTTPS または localhost が必要です。ライブラリとモデルは初回にインターネットから取得します。顔が小さい場合、暗所、遮蔽物、端末の処理能力によって精度・FPSは変わります。
+GitHubの Settings → Pages → Build and deployment → Source を GitHub Actions にしてください。
 
-モデル資料: https://developers.google.com/edge/mediapipe/solutions/vision/face_detector/web_js
+ローカル起動: python -m http.server 8000 を実行し、http://localhost:8000/ をブラウザで開きます。カメラアクセスは HTTPS または localhost でのみ使えます。
 
-※SCP財団の公式製品ではありません。ファンメイドの演出です。
+### 技術上の注意
+
+- 顔の **位置を検出** するAIであり、氏名や本人を特定する顔認証ではありません。
+- カメラ映像はサーバーへアップロードしません。JavaScriptとモデルの読み込みには初回ネット接続が必要です。
+- 顔検出が外れたり、検出開始直後には顔が表示されることがあります。セキュリティ用の匿名化や情報保護の保証はありません。
+- 軽量なBlazeFaceは照明・距離・顔向きで失敗します。機種に応じた推論間隔の調整を実装しています。
+- SCP Foundation非公式のファンメイド演出です。
+
+テスト: node --test tests/*.test.mjs
+
+モデル: https://developers.google.com/edge/mediapipe/solutions/vision/face_detector/web_js
