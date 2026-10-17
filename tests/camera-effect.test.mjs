@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import {strict as assert} from "node:assert";
-import {openRearCamera,shouldFallbackCamera} from "../src/camera.mjs";
+import {openRearCamera,openAlternateCamera,shouldFallbackCamera,oppositeFacing} from "../src/camera.mjs";
 import {effectState,scramble} from "../src/effect.mjs";
 
 test("rear camera is requested strictly first, without audio",async()=>{
@@ -58,4 +58,47 @@ test("renderer issues different geometry at different times, without bitmaps",()
   commands.length=0;scramble(ctx,f,2200);const two=JSON.stringify(commands);
   assert.notEqual(one,two);
   assert.equal(one.includes("drawImage"),false);
+});
+
+test("rear/front direction toggles both ways",()=>{
+  assert.equal(oppositeFacing("environment"),"user");
+  assert.equal(oppositeFacing("user"),"environment");
+});
+test("switching requests exact front-facing lens",async()=>{
+  const calls=[];
+  const stream={getVideoTracks:()=>[{getSettings:()=>({deviceId:"front42",facingMode:"user"})}]};
+  const result=await openAlternateCamera({getUserMedia:async c=>{calls.push(c);return stream;}},"user","back12");
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].video.facingMode,{exact:"user"});
+  assert.equal(result.facing,"user");
+  assert.equal(result.deviceId,"front42");
+});
+test("desktop switching chooses another physical camera instead of returning same",async()=>{
+  const used=[];
+  const devices=[
+    {kind:"videoinput",deviceId:"camA",label:"Built-in Camera"},
+    {kind:"videoinput",deviceId:"camB",label:"USB Camera"}
+  ];
+  const api={
+    enumerateDevices:async()=>devices,
+    getUserMedia:async c=>{
+      used.push(c);
+      if(c.video.facingMode)throw Object.assign(new Error("no facing lens"),{name:"OverconstrainedError"});
+      assert.deepEqual(c.video.deviceId,{exact:"camB"});
+      return {getVideoTracks:()=>[{getSettings:()=>({deviceId:"camB"})}]};
+    }
+  };
+  const result=await openAlternateCamera(api,"user","camA");
+  assert.equal(result.deviceId,"camB");
+  assert.equal(used.length,2);
+});
+test("single-camera switch errors rather than returning the current camera",async()=>{
+  const api={
+    enumerateDevices:async()=>[{kind:"videoinput",deviceId:"only",label:"single camera"}],
+    getUserMedia:async c=>{
+      if(c.video.facingMode)throw Object.assign(new Error("no second camera"),{name:"NotFoundError"});
+      throw new Error("should never select only camera");
+    }
+  };
+  await assert.rejects(openAlternateCamera(api,"user","only"),/別のカメラ/);
 });

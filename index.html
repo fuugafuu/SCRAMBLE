@@ -13,11 +13,18 @@ body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
 #permission[hidden]{display:none}#start{appearance:none;min-height:54px;min-width:195px;padding:12px 26px;color:#fff;background:transparent;border:1px solid #f0f0f0;border-radius:0;font:500 15px system-ui,sans-serif;letter-spacing:.08em;cursor:pointer}
 #start:focus-visible{outline:2px solid #fff;outline-offset:5px}#start:disabled{opacity:.6;cursor:wait}
 #message{font-size:12px;color:#ccc;text-align:center;max-width:340px;line-height:1.6;white-space:pre-line;min-height:18px}
+#switch-camera{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));width:48px;height:48px;display:grid;place-items:center;color:#fff;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.65);border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#switch-camera[hidden]{display:none}#switch-camera:disabled{opacity:.35;cursor:wait}#switch-camera:focus-visible{outline:2px solid white;outline-offset:4px}
+#switch-camera svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#camera-notice{position:fixed;left:50%;bottom:max(85px,calc(env(safe-area-inset-bottom) + 85px));transform:translateX(-50%);padding:8px 12px;background:rgba(0,0,0,.75);color:#fff;font-size:12px;max-width:85vw;text-align:center;pointer-events:none}
+#camera-notice[hidden]{display:none}
 </style>
 </head>
 <body>
 <video id="source" autoplay muted playsinline webkit-playsinline aria-hidden="true"></video>
 <canvas id="screen" aria-label="カメラで検出した複数人の顔をSCRAMBLEエフェクトで隠した映像"></canvas>
+<button id="switch-camera" type="button" aria-label="カメラを切り替え" title="カメラを切り替え" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.8 4.5 19 7.7l-3.2 3.2"/><path d="M19 7.7H9a5.6 5.6 0 0 0-5.5 5.6"/><path d="m8.2 19.5-3.2-3.2 3.2-3.2"/><path d="M5 16.3h10a5.6 5.6 0 0 0 5.5-5.6"/></svg></button>
+<div id="camera-notice" role="status" aria-live="polite" hidden></div>
 <div id="permission"><button id="start" type="button">カメラを起動</button><div id="message" role="status" aria-live="polite"></div></div>
 <script type="module" src="./src/app.mjs"></script>
 </body></html>
